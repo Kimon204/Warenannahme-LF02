@@ -31,12 +31,6 @@ const ALL_STATUS_TABS: { value: DeliveryStatus | ''; label: string }[] = [
   { value: 'returned', label: DELIVERY_STATUS_LABELS.returned },
 ];
 
-// Welche Status-Tabs je Rolle sichtbar sind
-const ROLE_TABS: Record<string, (DeliveryStatus | '')[]> = {
-  Wareneingang: ['expected'],
-  Warenprüfung: ['arrived', 'in_inspection'],
-};
-
 // Welche Status-Werte je Rolle geladen werden (leeres Array = alle)
 const ROLE_STATUS_FILTER: Record<string, DeliveryStatus[]> = {
   Wareneingang: ['expected'],
@@ -156,7 +150,8 @@ export default function Deliveries() {
   const role = user?.role ?? 'Beobachter';
 
   // Für Wareneingang/Warenprüfung ist der Tab fest vorgegeben
-  const lockedStatuses = ROLE_STATUS_FILTER[role] ?? [];
+  // useMemo verhindert neue Array-Referenz bei jedem Render (würde sonst load-Endlosschleife auslösen)
+  const lockedStatuses = useMemo(() => ROLE_STATUS_FILTER[role] ?? [], [role]);
   const isRoleLocked   = lockedStatuses.length > 0;
 
   // Sichtbare Tabs je Rolle
@@ -167,6 +162,7 @@ export default function Deliveries() {
   const [allDeliveries, setAllDeliveries] = useState<Delivery[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Filters — bei gesperrten Rollen wird kein freier Status-Tab-Wechsel erlaubt
   const [search, setSearch] = useState('');
@@ -184,6 +180,7 @@ export default function Deliveries() {
   // ── Data loading ──────────────────────────────────────────────────────────────
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       // Bei gesperrten Rollen mehrere Status-Queries parallel laden und zusammenführen
       const fetchDeliveries = isRoleLocked
@@ -197,6 +194,7 @@ export default function Deliveries() {
       setSuppliers(supps);
     } catch (e) {
       console.error(e);
+      setLoadError(e instanceof Error ? e.message : 'Fehler beim Laden der Lieferungen');
     } finally {
       setLoading(false);
     }
@@ -514,6 +512,14 @@ export default function Deliveries() {
           </button>
         )}
       </div>
+
+      {/* ── Fehleranzeige ───────────────────────────────────────────────────── */}
+      {loadError && (
+        <div className="mb-4 flex items-center gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+          <AlertTriangle size={16} className="flex-shrink-0" />
+          <span>{loadError}</span>
+        </div>
+      )}
 
       {/* ── Tabelle ─────────────────────────────────────────────────────────── */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
