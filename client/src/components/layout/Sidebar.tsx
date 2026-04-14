@@ -24,7 +24,7 @@ function initials(name: string) {
 }
 
 export default function Sidebar() {
-  const { user, logout } = useAuth();
+  const { user, logout, companyName } = useAuth();
   const navigate = useNavigate();
 
   function handleLogout() {
@@ -42,7 +42,7 @@ export default function Sidebar() {
           </div>
           <div>
             <p className="font-bold text-sm leading-tight">Warenannahme</p>
-            <p className="text-xs text-gray-400">IT Service GmbH</p>
+            {companyName && <p className="text-xs text-gray-400">{companyName}</p>}
           </div>
         </div>
       </div>

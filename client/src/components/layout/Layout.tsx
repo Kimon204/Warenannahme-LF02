@@ -4,7 +4,7 @@ import Sidebar from './Sidebar';
 import { useAuth } from '../../context/AuthContext';
 
 function MobileHeader() {
-  const { user, logout } = useAuth();
+  const { user, logout, companyName } = useAuth();
   const navigate = useNavigate();
 
   function handleLogout() {
@@ -18,7 +18,10 @@ function MobileHeader() {
         <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center shrink-0">
           <Package size={17} />
         </div>
-        <span className="font-bold text-sm">Warenannahme</span>
+        <div>
+          <p className="font-bold text-sm leading-tight">Warenannahme</p>
+          {companyName && <p className="text-xs text-gray-400 leading-tight">{companyName}</p>}
+        </div>
       </div>
       <div className="flex items-center gap-3 min-w-0">
         {user && (

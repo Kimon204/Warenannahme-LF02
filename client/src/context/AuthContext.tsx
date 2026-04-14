@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { Employee } from '../types';
+import { getAppSettings } from '../api/client';
 
 export type UserRole = 'Admin' | 'Beobachter' | 'Wareneingang' | 'Warenprüfung';
 
@@ -22,6 +23,8 @@ interface AuthContextValue {
   isReceiver:  boolean;
   /** Hat der User die Rolle Admin? */
   isAdmin:     boolean;
+  /** Firmenname aus den App-Einstellungen */
+  companyName: string;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -39,6 +42,13 @@ function loadSession(): AuthUser | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(loadSession);
+  const [companyName, setCompanyName] = useState('');
+
+  useEffect(() => {
+    getAppSettings()
+      .then(s => setCompanyName(s.company_name ?? ''))
+      .catch(() => {});
+  }, []);
 
   const login = useCallback((employee: Employee) => {
     const authUser: AuthUser = {
@@ -62,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isReceiver  = user?.role === 'Wareneingang';
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, canWrite, isInspector, isReceiver, isAdmin }}>
+    <AuthContext.Provider value={{ user, login, logout, canWrite, isInspector, isReceiver, isAdmin, companyName }}>
       {children}
     </AuthContext.Provider>
   );

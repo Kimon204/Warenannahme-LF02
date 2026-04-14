@@ -14,7 +14,7 @@ const ROLE_INFO: Record<UserRole, { label: string; description: string; color: s
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, companyName } = useAuth();
 
   const [firstName, setFirstName] = useState('');
   const [lastName,  setLastName]  = useState('');
@@ -56,7 +56,7 @@ export default function Login() {
             <Package size={32} className="text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white">Warenannahme</h1>
-          <p className="text-gray-400 text-sm mt-1">IT Service GmbH</p>
+          {companyName && <p className="text-gray-400 text-sm mt-1">{companyName}</p>}
         </div>
 
         {/* Card */}
