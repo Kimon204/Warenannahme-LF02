@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { de } from 'date-fns/locale';
 import {
-  Truck, ClipboardCheck, AlertTriangle, RotateCcw,
-  Plus, Search, RefreshCw, Package, CheckCircle, Clock, XCircle
+  Truck, ClipboardCheck, AlertTriangle,
+  Plus, RefreshCw, Package, CheckCircle, Clock, XCircle, Settings,
 } from 'lucide-react';
 import { getDashboard } from '../api/client';
 import { DashboardStats, DELIVERY_STATUS_LABELS, DeliveryStatus } from '../types';
-import StatusBadge from '../components/ui/StatusBadge';
 import { useAuth } from '../context/AuthContext';
 
 const PIPELINE_ORDER: DeliveryStatus[] = ['expected', 'arrived', 'in_inspection', 'completed', 'flagged', 'returned'];
@@ -94,26 +93,29 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 lg:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {format(new Date(), "EEEE, d. MMMM yyyy", { locale: de })} &bull; Aktualisiert: {format(lastRefresh, 'HH:mm:ss')}
+            {format(new Date(), "EEEE, d. MMMM yyyy", { locale: de })}
+            <span className="hidden sm:inline"> &bull; Aktualisiert: {format(lastRefresh, 'HH:mm:ss')}</span>
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <button
             onClick={load}
             className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
           >
-            <RefreshCw size={15} /> Aktualisieren
+            <RefreshCw size={15} />
+            <span className="hidden sm:inline">Aktualisieren</span>
           </button>
+          {/* Primäre Aktion je Rolle – nur auf Desktop (auf Mobile im Nav-Bereich) */}
           {isAdmin && (
             <button
               onClick={() => navigate('/deliveries/new')}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
             >
               <Plus size={15} /> Neue Lieferung
             </button>
@@ -121,7 +123,7 @@ export default function Dashboard() {
           {isReceiver && (
             <button
               onClick={() => navigate('/deliveries')}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
             >
               <Truck size={15} /> Neuer Wareneingang
             </button>
@@ -129,7 +131,7 @@ export default function Dashboard() {
           {isInspector && (
             <button
               onClick={() => navigate('/deliveries?status=arrived')}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-700"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-700"
             >
               <ClipboardCheck size={15} /> Wareneingang prüfen
             </button>
@@ -152,6 +154,64 @@ export default function Dashboard() {
             <p className="text-sm text-gray-500 mt-1">{kpi.label}</p>
           </button>
         ))}
+      </div>
+
+      {/* ── Mobile Navigation ────────────────────────────────────────────────── */}
+      <div className="lg:hidden mb-6">
+        <div className="grid grid-cols-3 gap-3">
+          <button
+            onClick={() => navigate('/deliveries')}
+            className="flex flex-col items-center gap-2 py-4 px-2 bg-white rounded-xl border border-gray-200 hover:shadow-md active:bg-gray-50 transition-shadow"
+          >
+            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+              <Truck size={20} className="text-blue-600" />
+            </div>
+            <span className="text-xs font-medium text-gray-700">Lieferungen</span>
+          </button>
+          <button
+            onClick={() => navigate('/discrepancies')}
+            className="flex flex-col items-center gap-2 py-4 px-2 bg-white rounded-xl border border-gray-200 hover:shadow-md active:bg-gray-50 transition-shadow"
+          >
+            <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+              <AlertTriangle size={20} className="text-orange-600" />
+            </div>
+            <span className="text-xs font-medium text-gray-700">Abweichungen</span>
+          </button>
+          <button
+            onClick={() => navigate('/settings')}
+            className="flex flex-col items-center gap-2 py-4 px-2 bg-white rounded-xl border border-gray-200 hover:shadow-md active:bg-gray-50 transition-shadow"
+          >
+            <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+              <Settings size={20} className="text-gray-600" />
+            </div>
+            <span className="text-xs font-medium text-gray-700">Einstellungen</span>
+          </button>
+        </div>
+        {/* Rollenspezifische Primäraktion */}
+        {isAdmin && (
+          <button
+            onClick={() => navigate('/deliveries/new')}
+            className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 active:bg-blue-800"
+          >
+            <Plus size={16} /> Neue Lieferung erfassen
+          </button>
+        )}
+        {isReceiver && (
+          <button
+            onClick={() => navigate('/deliveries')}
+            className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 active:bg-indigo-800"
+          >
+            <Truck size={16} /> Neuer Wareneingang
+          </button>
+        )}
+        {isInspector && (
+          <button
+            onClick={() => navigate('/deliveries?status=arrived')}
+            className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-yellow-600 rounded-xl hover:bg-yellow-700 active:bg-yellow-800"
+          >
+            <ClipboardCheck size={16} /> Wareneingang prüfen
+          </button>
+        )}
       </div>
 
       {/* Pipeline */}
